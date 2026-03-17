@@ -120,7 +120,7 @@ def main():
     style_metric_cards(
         background_color="#4F4F4F",
         box_shadow = True,
-        border_color = "#ffff",
+        border_color = "#ffffff",
         border_radius_px= 20,
         border_size_px= 2,
 
@@ -224,7 +224,8 @@ def main():
 
     st.altair_chart(grafica_gastos, width="stretch")
 
-    st.dataframe(df_gastos)
+    st.dataframe(df_gastos,
+                 hide_index=True,)
 
     st.subheader("De los porcentajes a los pesos reales")
 
@@ -286,13 +287,54 @@ def main():
     Tomando en cuenta que la maquiladora cerró en diciembre de 2025, el golpe a los bolsillos locales ya no es solo teoría en gráficas: **literalmente se siente en la calle.**
     """)
     st.dataframe(df_impacto_sectores
+                 
                  .assign(perdida_mensual_mxn=lambda x: x["perdida_mensual_mxn"].apply(fmt_moneda))
+                 .assign(perida_anual_mxn=lambda x: x["perida_anual_mxn"].apply(fmt_moneda))
+                ,hide_index=True
                  )
-    
-    #6. Conclusiones y referencias
-
     st.divider()
+    #6. Conclusiones y referencias
+    st.subheader("6. Conclusiones y referencias")
+    st.markdown("""
+    En resumen: **el cierre de Cielo Manufacturing no es "solo el problema de los exempleados".** Es una herida abierta en la economía de todo Tizimín. 
     
+    Cada día que pasa sin recuperar esos empleos formales, **es un día de pérdidas** para la señora de los tamales, el taxista, el tendero y el mercado completo. Las cifras no mienten: el agujero de **26 millones al año** no se tapa solo. 
+    
+    ¿Qué sigue para Tizimín? ¿Las autoridades están viendo estas cifras? 
+    Es momento de exigir y buscar soluciones reales antes de que la recesión local ahogue a los negocios que aún resisten.
+    """)
+    
+    referencias = pd.DataFrame({
+        "Fuente":["Revista Yucatán. (2017)",
+                "INEGI. (2025)", 
+                "Diario de Yucatán. (2023)", 
+                "El Grillo de Yucatán. (2017)",
+                "Diario Oficial de la Federación." ],
+        "Descripción":["Anuncio del cierre de Cielo Manufacturing y cifras iniciales de empleo.",
+                    "Encuesta Nacional de Ingresos y Gastos de los Hogares (ENIGH) 2024, resultados publicados en 2025.",
+                    "Reportaje sobre el impacto económico del cierre de la maquiladora en Tizimín, con testimonios locales.",
+                    "Cifras detalladas sobre el número de trabajadores prometidos, máximos y reales en Cielo Manufacturing.",
+                    "Información oficial sobre la fecha y condiciones del cierre de la planta, así como cualquier apoyo gubernamental anunciado."
+                    ],
+        "url":["https://www.revistayucatan.com/v1/noticias/inauguran-maquiladora-en-tizimin/",
+               "https://www.inegi.org.mx/contenidos/programas/enigh/nc/2024/doc/enigh2024_ns_presentacion_resultados.pdf",
+               "https://www.yucatan.com.mx/mexico/2024/12/26/empresas-textiles-alertan-cierre-masivo-por-decreto-de-claudia-sheinbaum-que-dice.html",
+               "https://grillodeyucatan.com/2017/05/06/la-nueva-maquiladora-cielo-manufacturing-genera-220-empleos-en-tizimin/",
+                "https://canaintex.org.mx/decreto-por-el-que-se-modifica-la-tarifa-de-la-ley-de-los-impuestos-generales-de-importacion-y-de-exportacion-y-el-decreto-para-el-fomento-de-la-industria-manufacturera-maquiladora-y-de-servicios-de/"
+                 ]
+    })
+
+    st.info("👋 **Sobre el autor:** Este trabajo fue hecho por Reynaldo Manzanilla, estudiante de Data Science en IEU Puebla. El objetivo es concientizar sobre el impacto económico del cierre de la maquiladora Cielo Manufacturing en Tizimín, Yucatán. Las cifras y análisis se basan en datos públicos y cálculos propios.")
+
+    with st.expander("📚 Ver Referencias y Fuentes de Datos"):
+        st.markdown("Para quienes quieran profundizar, aquí están las fuentes clave que respaldan los hallazgos de este estudio.")
+        st.dataframe(
+            referencias,
+            hide_index=True,
+            column_config={
+                "url": st.column_config.LinkColumn("Enlace al documento")
+            }
+        )
 
 
 # ==========================================
