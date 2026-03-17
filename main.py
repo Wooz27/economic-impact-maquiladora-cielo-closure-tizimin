@@ -200,10 +200,11 @@ def main():
     st.subheader("5. ¿Dónde se siente el impacto?")
 
     st.markdown("""
-                con menos ingresos, las familias recortan gastos.
-    Segun el inegi en su Encuesta Nacional de Ingresos y Gastos de los Hogares 2025, el gasto promedio de las familias mexicanas se distribuye así:
-                """
-                )
+    🛒 **¿A qué tipo de negocios les pega más fuerte?** 
+    Cuando las familias se quedan sin empleo, los recortes afectan a todos los sectores. Según el INEGI (2025), así se divide el presupuesto de un hogar en porcentajes. 
+    
+    *En otras palabras: de cada 100 pesos que los ex-trabajadores dejaron de gastar, así se repartía la pérdida entre los negocios locales:*
+    """)
     df_gastos = pd.DataFrame({
         "Gastos":["Alimentos, bebidas y tabaco", 
                   "Transporte y comunicaciones", "Educación y esparcimiento",
@@ -225,21 +226,33 @@ def main():
 
     st.dataframe(df_gastos)
 
-    st.subheader("¿Qué significa esto para Tizimín?")
+    st.subheader("De los porcentajes a los pesos reales")
 
     st.markdown("""
-    Los negocios locales que dependen de la derrama de los trabajadores de Cielo Manufacturing, como restaurantes, tiendas de abarrotes, farmacias y transporte, son los primeros en sentir el impacto.
-                con menos dinero en circulación, las familias recortan gastos en estas categorías, lo que a su vez afecta a los proveedores y empleados de esos negocios. 
-                Es un efecto dominó que se extiende por toda la economía local, afectando a todos los sectores y dejando a Tizimín en una situación económica cada vez más precaria.
-                en la siguiente grafica se muestra los sectores afectados por la reducción del gasto familiar, con un enfoque en los sectores más vulnerables a la pérdida de ingresos de los trabajadores de Cielo Manufacturing.
-                """)
+    📉 **De la estadística a la caja registradora:** Los porcentajes del INEGI pueden ser solo números fríos, pero si los cruzamos con el dinero total que dejó de entrar a Tizimín cada mes, la realidad es otra.
     
+    La tiendita de la esquina, el panadero o la farmacia no resienten "porcentajes", resienten billetes que ya no entran en sus negocios. 
+    
+    Al aplicar esos hábitos de gasto al impacto económico total (con todo y efecto dominó), aquí calculamos **cuánto dinero crudo está perdiendo Tizimín cada mes, sector por sector:**
+    """)
+    
+    filtro_tiemp = st.radio("¿Quieres ver la pérdida mensual o anual?", options=["Mensual", "Anual"])
     df_impacto_sectores = pd.DataFrame({
         "Sector":["Alimentos, bebidas y tabaco", 
                   "Transporte y comunicaciones", "Educación y esparcimiento",
                   "Vivienda y servicios", "Cuidados personales", "Enseres domésticos", "Vestido y calzado", "Salud", "Otros"
                   ],
-                  "Aproximado en perdida (pesos)": [perdida_con_derrama_anual * (alimentos_bebidas_tabaco/100),
+                  "perdida_mensual_mxn": [perdida_con_derrama_mensual * (alimentos_bebidas_tabaco/100),
+                                                    perdida_con_derrama_mensual * (transporte_comunicaciones/100),
+                                                    perdida_con_derrama_mensual * (educación_esparcimiento/100),
+                                                    perdida_con_derrama_mensual * (vivienda_servicios/100),
+                                                    perdida_con_derrama_mensual * (cuidados_personales/100),
+                                                    perdida_con_derrama_mensual * (enseres_domésticos/100),
+                                                    perdida_con_derrama_mensual * (vestido_calzado/100),
+                                                    perdida_con_derrama_mensual * (salud/100),
+                                                    perdida_con_derrama_mensual * (otros/100)],
+                                                    
+                                                    "perida_anual_mxn": [perdida_con_derrama_anual * (alimentos_bebidas_tabaco/100),
                                                     perdida_con_derrama_anual * (transporte_comunicaciones/100),
                                                     perdida_con_derrama_anual * (educación_esparcimiento/100),
                                                     perdida_con_derrama_anual * (vivienda_servicios/100),
@@ -247,8 +260,38 @@ def main():
                                                     perdida_con_derrama_anual * (enseres_domésticos/100),
                                                     perdida_con_derrama_anual * (vestido_calzado/100),
                                                     perdida_con_derrama_anual * (salud/100),
-                                                    perdida_con_derrama_anual * (otros/100)]})
+                                                    perdida_con_derrama_anual * (otros/100)]
+                                                    })
     
+    if filtro_tiemp == "Mensual":
+        grafica_impacto_sectores = alt.Chart(df_impacto_sectores).mark_bar().encode(
+        y= alt.Y("Sector", sort='x', axis=alt.Axis(labelAngle=0)),
+        x= alt.X("perdida_mensual_mxn", axis=alt.Axis(title="Pérdida mensual estimada (MXN)")),
+        color= alt.Color("Sector:N", legend=None, scale=alt.Scale(scheme="category20")
+        ))
+        
+        st.altair_chart(grafica_impacto_sectores, width="stretch")
+    else:
+        grafica_impacto_sectores_anual = alt.Chart(df_impacto_sectores).mark_bar().encode(
+        y= alt.Y("Sector", sort='x', axis=alt.Axis(labelAngle=0)),
+        x= alt.X("perida_anual_mxn", axis=alt.Axis(title="Pérdida anual estimada (MXN)")),
+        color= alt.Color("Sector:N", legend=None, scale=alt.Scale(scheme="category20")
+        ))
+        
+        st.altair_chart(grafica_impacto_sectores_anual, width="stretch")
+    
+
+    st.warning("""
+    👁️‍🗨️ **Dato real desde las calles:** Al visitar restaurantes locales del centro en plena quincena de marzo (ya pasada la cuesta de enero), se notaban **prácticamente vacíos**. 
+    Tomando en cuenta que la maquiladora cerró en diciembre de 2025, el golpe a los bolsillos locales ya no es solo teoría en gráficas: **literalmente se siente en la calle.**
+    """)
+    st.dataframe(df_impacto_sectores
+                 .assign(perdida_mensual_mxn=lambda x: x["perdida_mensual_mxn"].apply(fmt_moneda))
+                 )
+    
+    #6. Conclusiones y referencias
+
+    st.divider()
     
 
 
